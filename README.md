@@ -40,7 +40,7 @@ $ photobooth -c <path/to/photobooth_config.ini>-d <path/to/dslr_config.ini>
    exec openbox-session
    ```
 
-1. Create the `autostart` file unter `~/config/openbox/autostart`
+1. Create the `autostart` file unter `~/.config/openbox/autostart`
 
    ```
    setxkbmap -option terminate:ctrl_alt_bksp
@@ -51,7 +51,7 @@ $ photobooth -c <path/to/photobooth_config.ini>-d <path/to/dslr_config.ini>
 
    unclutter -idle 0.5 -root &
 
-   photobooth -c <path/to/photobooth_config.ini>-d <path/to/dslr_config.ini>
+   photobooth -c <path/to/photobooth_config.ini> -d <path/to/dslr_config.ini>
    ```
 
    Remarks:
