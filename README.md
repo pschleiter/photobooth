@@ -5,7 +5,6 @@
 ![PyPI - Licence](https://img.shields.io/pypi/l/photobooth)
 [![Current version on PyPI](https://img.shields.io/pypi/v/photobooth)](https://pypi.org/project/photobooth/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/photobooth.svg?color=dark-green)](https://pypi.org/project/photobooth/)
-[![Build Status](https://github.com/pschleiter/photobooth/workflows/build/badge.svg)](https://github.com/pschleiter/photobooth/actions)
 
 ## Installation on RaspberryPi
 
@@ -45,6 +44,10 @@ $ photobooth -c <path/to/photobooth_config.ini>-d <path/to/dslr_config.ini>
 
    ```
    setxkbmap -option terminate:ctrl_alt_bksp
+
+   xset s noblank
+   xset s off
+   xset -dpms
 
    unclutter -idle 0.5 -root &
 
