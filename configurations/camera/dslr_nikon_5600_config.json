@@ -31,19 +31,9 @@
     "value": "6000x4000"
   },
   {
-    "label": "ISO Auto",
-    "name": "isoauto",
-    "value": "On"
-  },
-  {
-    "label": "Auto ISO",
-    "name": "autoiso",
-    "value": "On"
-  },
-  {
     "label": "WhiteBalance",
     "name": "whitebalance",
-    "value": ["Flash", "Cloudy"]
+    "value": ["Flash", "Cloudy", "Fluorescent"]
   },
   {
     "label": "ISO Auto Hi Limit",
@@ -71,11 +61,6 @@
     "value": "0"
   },
   {
-    "label": "F-Number",
-    "name": "f-number",
-    "value": ["f/8", "f/9", "f/10", "f/11"]
-  },
-  {
     "label": "Image Quality",
     "name": "imagequality",
     "value": "NEF+Basic"
@@ -98,7 +83,7 @@
   {
     "label": "Exposure Program",
     "name": "expprogram",
-    "value": "A"
+    "value": "M"
   },
   {
     "label": "Focus Metering Mode",
