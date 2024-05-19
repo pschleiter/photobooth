@@ -13,15 +13,16 @@ class UploadWorker(QtCore.QThread):
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
+        import httpx
 
-        self._domain = domain
+        self._client = httpx.Client(
+            auth=auth,
+        )
+        self._url = domain
         self._resolution = resolution
-        self._auth = auth
 
     def upload(self, image_data: bytes, filename: str):
         try:
-            import requests
-            from requests.auth import HTTPDigestAuth
             from PIL import Image
 
             image = Image.open(io.BytesIO(image_data))
@@ -30,15 +31,10 @@ class UploadWorker(QtCore.QThread):
             image.save(buffer, "JPEG", exif=image.getexif())
             buffer.seek(0)
 
-            auth = None
-            if self._auth is not None:
-                auth = HTTPDigestAuth(*self._auth)
-
-            requests.put(
-                self._domain,
+            self._client.put(
+                self._url,
                 params=dict(filename=filename),
                 data=buffer.getvalue(),
-                auth=auth,
             )
         except Exception:
             pass

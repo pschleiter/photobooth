@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "photobooth"
-authors = [{ name = "Patrick Schleiter", email = "git.pschleiter@gmail.com"}]
+authors = [{ name = "Patrick Schleiter", email = "git.pschleiter@gmail.com" }]
 description = "Photobooth python package. Based on QTs Web Interface and gphoto2 package."
 requires-python = ">=3.9.2"
 license = { text = "MIT License" }
@@ -25,7 +25,7 @@ dynamic = ["version", "readme"]
 [project.optional-dependencies]
 rpi = ["gpiozero==1.6.2"]
 dslr = ["gphoto2==2.3.4"]
-upload = ["requests==2.29.0", "pillow>=10.0.0"]
+upload = ["httpx==0.27.0", "pillow>=10.0.0"]
 
 [project.scripts]
 photobooth = "photobooth.cli:cli"
