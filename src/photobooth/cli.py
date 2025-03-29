@@ -56,6 +56,7 @@ def start_upload_worker() -> typing.Tuple[QtCore.QObject, QtCore.QThread]:
             domain=Config.UPLOAD_DOMAIN,
             resolution=Config.UPLOAD_MAX_RESOLUTION,
             auth=Config.UPLOAD_AUTH,
+            config=Config.UPLOAD_CONFIGURATION,
         )
         upload_thread = QtCore.QThread()
         upload.moveToThread(upload_thread)

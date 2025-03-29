@@ -66,6 +66,7 @@ class Config:
     UPLOAD_DOMAIN: typing.Optional[str] = None
     UPLOAD_MAX_RESOLUTION: typing.Tuple[int, int] = (1920, 1280)
     UPLOAD_AUTH: typing.Optional[typing.Tuple[str, str]] = None
+    UPLOAD_CONFIGURATION: typing.Dict[str, typing.Any] = {}
 
     FILE_STORE_PATH: typing.Optional[str] = None
     FILE_STORE_RESOLUTION: typing.Tuple[int, int] = (1920, 1280)
@@ -163,6 +164,8 @@ class Config:
             password = config['upload'].get('password')
             if username is not None and password is not None:
                 cls.UPLOAD_AUTH = (username, password)
+
+            cls.UPLOAD_CONFIGURATION = json.loads(config['upload'].get('config', '{}'))
 
         if config.has_section('filestore'):
             cls.FILE_STORE_PATH = config['filestore'].get('path')
