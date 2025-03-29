@@ -33,8 +33,7 @@ class UploadWorker(QtCore.QThread):
 
             self._client.put(
                 self._url,
-                params=dict(filename=filename),
-                data=buffer.getvalue(),
+                files={'file': (filename, buffer.getvalue(), 'image/jpeg')},
             )
         except Exception:
             pass
