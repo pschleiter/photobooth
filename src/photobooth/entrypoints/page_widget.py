@@ -85,7 +85,7 @@ class StartupPage(ButtonPage):
         self._label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
         self._label.setText(
             Config.WIDGET_STARTUP_CAMERA_ERROR_MESSAGE.format(
-                status=textwrap.indent(status, " - ", lambda line: True)
+                status=textwrap.indent(status, ' - ', lambda line: True)
             )
         )
 
@@ -154,9 +154,9 @@ class GalleryPage(ViewButtonPage):
         self.load_gallery()
 
     @staticmethod
-    def _setup_gallery() -> (
-        typing.List[typing.Tuple[GalleryPosition, typing.Optional[QtGui.QPixmap]]]
-    ):
+    def _setup_gallery() -> typing.List[
+        typing.Tuple[GalleryPosition, typing.Optional[QtGui.QPixmap]]
+    ]:
         return [
             (GalleryPosition(x=x, y=y, rotate=rotate), None)
             for x, y, rotate in Config.WIDGET_GALLERY_POSITIONS

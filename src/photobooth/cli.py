@@ -18,12 +18,12 @@ def start_camera_worker(
 
     if testing:
         camera = adapters.camera.DummyCameraWorker(folder=testing)
-    elif importlib.util.find_spec("gphoto2") is not None:
+    elif importlib.util.find_spec('gphoto2') is not None:
         camera = adapters.camera.NikonCameraWorker(configuration=configuration)
     else:
         raise RuntimeError(
-            "Package gphoto2 is missing please install with: "
-            "pip install photobooth[dslr]"
+            'Package gphoto2 is missing please install with: '
+            'pip install photobooth[dslr]'
         )
 
     camera_thread = QtCore.QThread()
@@ -49,17 +49,15 @@ def start_upload_worker() -> typing.Tuple[QtCore.QObject, QtCore.QThread]:
     return None, None
 
 
-def start_hardware_button_worker() -> (
-    typing.Tuple[
-        typing.Optional[QtCore.QObject],
-        typing.Optional[QtCore.QObject],
-        typing.Optional[QtCore.QThread],
-        typing.Optional[QtCore.QThread],
-    ]
-):
+def start_hardware_button_worker() -> typing.Tuple[
+    typing.Optional[QtCore.QObject],
+    typing.Optional[QtCore.QObject],
+    typing.Optional[QtCore.QThread],
+    typing.Optional[QtCore.QThread],
+]:
     from photobooth import adapters
 
-    if importlib.util.find_spec("gpiozero") is not None:
+    if importlib.util.find_spec('gpiozero') is not None:
         left_button, right_button = (
             adapters.buttons.ButtonWorker(gpio=Config.HARDWAREBUTTON_LEFT_BUTTON_GPIO),
             adapters.buttons.ButtonWorker(gpio=Config.HARDWAREBUTTON_RIGHT_BUTTON_GPIO),
@@ -72,43 +70,43 @@ def start_hardware_button_worker() -> (
         right_button_thread.started.connect(right_button.wait_for_press)
 
         return left_button, right_button, left_button_thread, right_button_thread
-    click.echo("No Hardware Buttons found.", err=True)
+    click.echo('No Hardware Buttons found.', err=True)
     return (None, None, None, None)
 
 
 @click.command
 @click.option(
-    "-c",
-    "--config",
-    "config",
-    help="Configuration to load.",
+    '-c',
+    '--config',
+    'config',
+    help='Configuration to load.',
     type=click.Path(exists=True, path_type=str),
     default=None,
 )
 @click.option(
-    "-d",
-    "--dslr-config",
-    "dslr_config",
-    help="DSLR Configuration to check on start.",
+    '-d',
+    '--dslr-config',
+    'dslr_config',
+    help='DSLR Configuration to check on start.',
     type=click.Path(exists=True, path_type=str),
     default=None,
 )
 @click.option(
-    "-s",
-    "--window-size",
-    "window_size",
+    '-s',
+    '--window-size',
+    'window_size',
     help=(
-        "The window size in pixel (width, height). "
-        "If none is provided opens in fullscreen mode."
+        'The window size in pixel (width, height). '
+        'If none is provided opens in fullscreen mode.'
     ),
     type=(int, int),
     default=None,
 )
 @click.option(
-    "-t",
-    "--testing",
-    "testing",
-    help="Directory containing images to use for faking the camera.",
+    '-t',
+    '--testing',
+    'testing',
+    help='Directory containing images to use for faking the camera.',
     type=click.Path(exists=True, path_type=str),
     default=None,
 )
@@ -122,7 +120,7 @@ def cli(
         Config.from_file(config)
 
     if dslr_config is not None:
-        with open(dslr_config, "r") as file:
+        with open(dslr_config, 'r') as file:
             dslr_config = json.load(file)
 
     app = QtWidgets.QApplication([])
@@ -174,5 +172,5 @@ def cli(
     sys.exit(status_code)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     cli()

@@ -44,7 +44,7 @@ class CameraWorker(QtCore.QObject):
 class DummyCameraWorker(CameraWorker):
     def __init__(self, folder: str, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._pictures = list(Path(folder).glob("*.JPG"))
+        self._pictures = list(Path(folder).glob('*.JPG'))
 
         self._liveview_timer: QtCore.QTimer
 
@@ -57,21 +57,21 @@ class DummyCameraWorker(CameraWorker):
         self._liveview_timer.stop()
 
     def liveview(self) -> None:
-        self.liveview_captured.emit(open(self._pictures[0], mode="rb").read())
+        self.liveview_captured.emit(open(self._pictures[0], mode='rb').read())
 
     def _capture(self) -> None:
         path = self._pictures.pop(0)
         self.image_name_fetched.emit(path.name)
         time.sleep(1)
-        self.image_captured.emit(open(path, mode="rb").read(), path.name)
+        self.image_captured.emit(open(path, mode='rb').read(), path.name)
         self._pictures.append(path)
 
     def check(self) -> None:
         if self._error:
             self._error = False
-            return self.status.emit("Config Diff1\nConfig Diff2")
+            return self.status.emit('Config Diff1\nConfig Diff2')
 
-        return self.status.emit("")
+        return self.status.emit('')
 
 
 class NikonCameraWorker(CameraWorker):
@@ -126,11 +126,11 @@ class NikonCameraWorker(CameraWorker):
 
         cameras = gphoto2.Camera.autodetect()
         if len(cameras) == 0:
-            self.status.emit("No camera found. Please turn on and try again.")
+            self.status.emit('No camera found. Please turn on and try again.')
             return None
 
         if self._configuration is None:
-            self.status.emit("")
+            self.status.emit('')
             return None
 
         camera = gphoto2.Camera()
@@ -138,33 +138,33 @@ class NikonCameraWorker(CameraWorker):
             camera.init()
             config = camera.get_config()
 
-            message = ""
+            message = ''
             for setting in self._configuration:
-                child = config.get_child_by_name(setting["name"])
-                if setting["name"] == "availableshots":
-                    if child.get_value() < setting["value"]:
+                child = config.get_child_by_name(setting['name'])
+                if setting['name'] == 'availableshots':
+                    if child.get_value() < setting['value']:
                         message += (
-                            f"\n{setting['label']}: "
-                            f"{child.get_value()} < {setting['value']}"
+                            f'\n{setting["label"]}: '
+                            f'{child.get_value()} < {setting["value"]}'
                         )
 
                 else:
-                    if isinstance(setting["value"], list):
-                        if child.get_value() not in setting["value"]:
+                    if isinstance(setting['value'], list):
+                        if child.get_value() not in setting['value']:
                             message += (
-                                f"\n{setting['label']}: "
-                                f"{child.get_value()} not in {setting['value']}"
+                                f'\n{setting["label"]}: '
+                                f'{child.get_value()} not in {setting["value"]}'
                             )
-                    elif child.get_value() != setting["value"]:
+                    elif child.get_value() != setting['value']:
                         message += (
-                            f"\n{setting['label']}:"
-                            f" {child.get_value()} != {setting['value']}"
+                            f'\n{setting["label"]}:'
+                            f' {child.get_value()} != {setting["value"]}'
                         )
 
             self.status.emit(message)
             return None
         except Exception:
-            self.status.emit("Error please restart.")
+            self.status.emit('Error please restart.')
             return None
         finally:
             camera.exit()
@@ -179,5 +179,5 @@ class NikonCameraWorker(CameraWorker):
         self._camera.init()
 
     def shutdown(self) -> None:
-        if hasattr(self, "_camera"):
+        if hasattr(self, '_camera'):
             self._camera.exit()

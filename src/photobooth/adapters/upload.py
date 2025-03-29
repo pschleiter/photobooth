@@ -28,7 +28,7 @@ class UploadWorker(QtCore.QThread):
             image = Image.open(io.BytesIO(image_data))
             image.thumbnail(self._resolution)
             buffer = io.BytesIO()
-            image.save(buffer, "JPEG", exif=image.getexif())
+            image.save(buffer, 'JPEG', exif=image.getexif())
             buffer.seek(0)
 
             self._client.put(
