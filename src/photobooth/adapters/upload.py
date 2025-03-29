@@ -9,15 +9,20 @@ class UploadWorker(QtCore.QThread):
         domain: str,
         resolution: typing.Tuple[int, int],
         auth: typing.Optional[typing.Tuple[str, str]],
+        config: typing.Dict[str, typing.Any],
         *args,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
         import httpx
 
-        self._client = httpx.Client(
-            auth=auth,
-        )
+        if auth is not None:
+            username, password = auth
+            auth_ = httpx.BasicAuth(username=username, password=password)
+        else:
+            auth_ = None
+
+        self._client = httpx.Client(auth=auth_, **config)
         self._url = domain
         self._resolution = resolution
 
@@ -28,13 +33,12 @@ class UploadWorker(QtCore.QThread):
             image = Image.open(io.BytesIO(image_data))
             image.thumbnail(self._resolution)
             buffer = io.BytesIO()
-            image.save(buffer, "JPEG", exif=image.getexif())
+            image.save(buffer, 'JPEG', exif=image.getexif())
             buffer.seek(0)
 
             self._client.put(
                 self._url,
-                params=dict(filename=filename),
-                data=buffer.getvalue(),
+                files={'file': (filename, buffer.getvalue(), 'image/jpeg')},
             )
         except Exception:
             pass

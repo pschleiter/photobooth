@@ -18,12 +18,12 @@ def start_camera_worker(
 
     if testing:
         camera = adapters.camera.DummyCameraWorker(folder=testing)
-    elif importlib.util.find_spec("gphoto2") is not None:
+    elif importlib.util.find_spec('gphoto2') is not None:
         camera = adapters.camera.NikonCameraWorker(configuration=configuration)
     else:
         raise RuntimeError(
-            "Package gphoto2 is missing please install with: "
-            "pip install photobooth[dslr]"
+            'Package gphoto2 is missing please install with: '
+            'pip install photobooth[dslr]'
         )
 
     camera_thread = QtCore.QThread()
@@ -31,6 +31,21 @@ def start_camera_worker(
     camera_thread.finished.connect(camera.shutdown)
 
     return camera, camera_thread
+
+
+def start_file_store_worker() -> typing.Tuple[QtCore.QObject, QtCore.QThread]:
+    from photobooth import adapters
+
+    if Config.FILE_STORE_PATH is not None:
+        file_store = adapters.file_store.FileStoreWorker(
+            path=Config.FILE_STORE_PATH,
+            resolution=Config.FILE_STORE_RESOLUTION,
+        )
+        file_store_thread = QtCore.QThread()
+        file_store.moveToThread(file_store_thread)
+        return file_store, file_store_thread
+
+    return None, None
 
 
 def start_upload_worker() -> typing.Tuple[QtCore.QObject, QtCore.QThread]:
@@ -41,6 +56,7 @@ def start_upload_worker() -> typing.Tuple[QtCore.QObject, QtCore.QThread]:
             domain=Config.UPLOAD_DOMAIN,
             resolution=Config.UPLOAD_MAX_RESOLUTION,
             auth=Config.UPLOAD_AUTH,
+            config=Config.UPLOAD_CONFIGURATION,
         )
         upload_thread = QtCore.QThread()
         upload.moveToThread(upload_thread)
@@ -49,17 +65,15 @@ def start_upload_worker() -> typing.Tuple[QtCore.QObject, QtCore.QThread]:
     return None, None
 
 
-def start_hardware_button_worker() -> (
-    typing.Tuple[
-        typing.Optional[QtCore.QObject],
-        typing.Optional[QtCore.QObject],
-        typing.Optional[QtCore.QThread],
-        typing.Optional[QtCore.QThread],
-    ]
-):
+def start_hardware_button_worker() -> typing.Tuple[
+    typing.Optional[QtCore.QObject],
+    typing.Optional[QtCore.QObject],
+    typing.Optional[QtCore.QThread],
+    typing.Optional[QtCore.QThread],
+]:
     from photobooth import adapters
 
-    if importlib.util.find_spec("gpiozero") is not None:
+    if importlib.util.find_spec('gpiozero') is not None:
         left_button, right_button = (
             adapters.buttons.ButtonWorker(gpio=Config.HARDWAREBUTTON_LEFT_BUTTON_GPIO),
             adapters.buttons.ButtonWorker(gpio=Config.HARDWAREBUTTON_RIGHT_BUTTON_GPIO),
@@ -72,43 +86,43 @@ def start_hardware_button_worker() -> (
         right_button_thread.started.connect(right_button.wait_for_press)
 
         return left_button, right_button, left_button_thread, right_button_thread
-    click.echo("No Hardware Buttons found.", err=True)
+    click.echo('No Hardware Buttons found.', err=True)
     return (None, None, None, None)
 
 
 @click.command
 @click.option(
-    "-c",
-    "--config",
-    "config",
-    help="Configuration to load.",
+    '-c',
+    '--config',
+    'config',
+    help='Configuration to load.',
     type=click.Path(exists=True, path_type=str),
     default=None,
 )
 @click.option(
-    "-d",
-    "--dslr-config",
-    "dslr_config",
-    help="DSLR Configuration to check on start.",
+    '-d',
+    '--dslr-config',
+    'dslr_config',
+    help='DSLR Configuration to check on start.',
     type=click.Path(exists=True, path_type=str),
     default=None,
 )
 @click.option(
-    "-s",
-    "--window-size",
-    "window_size",
+    '-s',
+    '--window-size',
+    'window_size',
     help=(
-        "The window size in pixel (width, height). "
-        "If none is provided opens in fullscreen mode."
+        'The window size in pixel (width, height). '
+        'If none is provided opens in fullscreen mode.'
     ),
     type=(int, int),
     default=None,
 )
 @click.option(
-    "-t",
-    "--testing",
-    "testing",
-    help="Directory containing images to use for faking the camera.",
+    '-t',
+    '--testing',
+    'testing',
+    help='Directory containing images to use for faking the camera.',
     type=click.Path(exists=True, path_type=str),
     default=None,
 )
@@ -122,7 +136,7 @@ def cli(
         Config.from_file(config)
 
     if dslr_config is not None:
-        with open(dslr_config, "r") as file:
+        with open(dslr_config, 'r') as file:
             dslr_config = json.load(file)
 
     app = QtWidgets.QApplication([])
@@ -131,6 +145,7 @@ def cli(
         configuration=dslr_config, testing=testing
     )
     left_button, right_button, *button_threads = start_hardware_button_worker()
+    file_store, file_store_thread = start_file_store_worker()
     upload, upload_thread = start_upload_worker()
 
     from photobooth.entrypoints.main_widget import MainWidget
@@ -143,7 +158,10 @@ def cli(
     from photobooth.service_layer.messagebus import MessageBus
 
     message_bus = MessageBus(  # noqa: F841
-        main_widget=main_widget, camera=camera, upload=upload
+        main_widget=main_widget,
+        camera=camera,
+        upload=upload,
+        file_store=file_store,
     )
 
     if window_size is None:
@@ -158,6 +176,8 @@ def cli(
                 button_thread.start()
         if upload_thread is not None:
             upload_thread.start()
+        if file_store is not None:
+            file_store_thread.start()
         camera_thread.start()
         status_code = app.exec()
     finally:
@@ -166,6 +186,9 @@ def cli(
         if upload is not None:
             upload_thread.quit()
             upload_thread.wait()
+        if file_store is not None:
+            file_store_thread.quit()
+            file_store_thread.wait()
         for button_thread in button_threads:
             if button_thread is not None:
                 button_thread.quit()
@@ -174,5 +197,5 @@ def cli(
     sys.exit(status_code)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     cli()

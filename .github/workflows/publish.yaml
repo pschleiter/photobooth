@@ -1,58 +1,117 @@
-name: Publish
+# Source: https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows
+name: Publish Python distribution Package to PyPI and TestPyPI
 
-on:
-  push:
-    tags:
-      - "*"
+on: push
 
 jobs:
   build:
-    name: build
+    name: Build distribution Package
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
-      - uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-          cache: "pip"
-          cache-dependency-path: "requirements/*.txt"
-      - run: pip install -r requirements/build.txt
-      # Use the commit date instead of the current date during the build.
-      - run: echo "SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)" >> $GITHUB_ENV
-      - run: python -m build
-      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce
+      - name: Install pypa/build
+        run: >-
+          python3 -m
+          pip install
+          build
+          --user
+      - name: Build a binary wheel and a source tarball
+        run: python3 -m build
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v4
         with:
-          path: ./dist
-  create-release:
-    # Upload the sdist and wheels to a GitHub release. They remain
-    # available as build artifacts for a while as well.
-    needs: ["build"]
+          name: python-package-distributions
+          path: dist/
+
+  publish-to-pypi:
+    name: >-
+      Publish Python distribution Package to PyPI
+    if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
+    needs:
+      - build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a
-      - name: create release
-        run: >
-          gh release create --draft --repo ${{ github.repository }}
-          ${{ github.ref_name }}
-          artifact/*
-        env:
-          GH_TOKEN: ${{ github.token }}
-  publish-pypi:
-    needs: ["build"]
-    # Wait for approval before attempting to upload to PyPI. This allows reviewing the
-    # files in the draft release.
-    environment: "publish"
-    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/photobooth
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a
-      - uses: pypa/gh-action-pypi-publish@f5622bde02b04381239da3573277701ceca8f6a0
+      - name: Download all the dists
+        uses: actions/download-artifact@v4
         with:
-          repository_url: https://test.pypi.org/legacy/
-          packages_dir: artifact/
-      - uses: pypa/gh-action-pypi-publish@f5622bde02b04381239da3573277701ceca8f6a0
-        with:
-          packages-dir: artifact/
+          name: python-package-distributions
+          path: dist/
+      - name: Publish distribution Package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: >-
+      Sign the Python distribution Package with Sigstore
+      and upload them to GitHub Release
+    needs:
+    - publish-to-pypi
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Sign the dists with Sigstore
+      uses: sigstore/gh-action-sigstore-python@v3.0.0
+      with:
+        inputs: >-
+          ./dist/*.tar.gz
+          ./dist/*.whl
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: >-
+        gh release create
+        "$GITHUB_REF_NAME"
+        --repo "$GITHUB_REPOSITORY"
+        --notes ""
+    - name: Upload artifact signatures to GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: >-
+        gh release upload
+        "$GITHUB_REF_NAME" dist/**
+        --repo "$GITHUB_REPOSITORY"
+
+  publish-to-testpypi:
+    name: Publish Python distribution Package to TestPyPI
+    if: github.ref == 'refs/heads/main' # only publish to TestPyPI on main pushes
+    needs:
+    - build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/photobooth
+
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish distribution Package to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
