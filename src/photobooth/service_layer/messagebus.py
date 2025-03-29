@@ -2,6 +2,7 @@ from functools import partial
 import typing
 
 from PyQt5 import QtCore
+from photobooth.adapters.file_store import FileStoreWorker
 from photobooth.adapters.upload import UploadWorker
 
 from photobooth.config import Config
@@ -31,6 +32,7 @@ class MessageBus(QtCore.QObject):
         main_widget,
         camera: CameraWorker,
         upload: UploadWorker,
+        file_store: FileStoreWorker,
         parent: typing.Optional[QtCore.QObject] = None,
     ) -> None:
         super().__init__(parent)
@@ -46,6 +48,7 @@ class MessageBus(QtCore.QObject):
         self._connect_main_widget(main_widget=main_widget)
         self._connect_camera(camera=camera)
         self._connect_upload(upload=upload)
+        self._connect_file_store(file_store=file_store)
 
         main_widget.activate_page(page=self._state)
 
@@ -119,6 +122,11 @@ class MessageBus(QtCore.QObject):
         if upload is not None:
             # Trigger: control -> upload
             self.add_image.connect(upload.upload)
+
+    def _connect_file_store(self, file_store: typing.Optional[FileStoreWorker]):
+        if file_store is not None:
+            # Trigger: control -> file_store
+            self.add_image.connect(file_store.save)
 
     def _set_timeouts(self):
         self.liveview.connect(

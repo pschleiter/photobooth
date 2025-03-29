@@ -67,6 +67,9 @@ class Config:
     UPLOAD_MAX_RESOLUTION: typing.Tuple[int, int] = (1920, 1280)
     UPLOAD_AUTH: typing.Optional[typing.Tuple[str, str]] = None
 
+    FILE_STORE_PATH: typing.Optional[str] = None
+    FILE_STORE_RESOLUTION: typing.Tuple[int, int] = (1920, 1280)
+
     @classmethod
     def from_file(cls, path: str):
         config = configparser.ConfigParser()
@@ -160,3 +163,10 @@ class Config:
             password = config['upload'].get('password')
             if username is not None and password is not None:
                 cls.UPLOAD_AUTH = (username, password)
+
+        if config.has_section('filestore'):
+            cls.FILE_STORE_PATH = config['filestore'].get('path')
+
+            resolution = config['filestore'].get('max_resolution')
+            if resolution is not None:
+                cls.FILE_STORE_RESOLUTION = tuple(map(int, resolution.split(',')))
